@@ -1,48 +1,49 @@
-// import 'package:flutter/material.dart'; // Tạm thời comment lại để chạy test Dart thuần
+
 import 'models/product.dart';
+import 'dao/product_dao.dart';
 
 void main() {
   print('--- DANH SÁCH BAN ĐẦU ---');
-  printList(Product.getAllProducts());
+  printList(ProductDAO.products);
 
-  print('\n--- 1. CREATE (THÊM SẢN PHẨM MỚI) ---');
-  Product newProduct = Product(
-    id: '4',
-    name: 'Product 4',
-    price: 400,
-    image: 'assets/images/senheiser.jpg',
-  );
-  Product.addProduct(newProduct);
-  printList(Product.getAllProducts());
+  print('\n--- 1. TEST FACTORY (Map JSON về Product) ---');
+  Map<String, dynamic> jsonData = {
+    "id": "4",
+    "name": "Tai nghe Bluetooth",
+    "price": 150,
+    "image": "headphone.jpg"
+  };
+  Product newProduct = Product.fromJson(jsonData);
+  ProductDAO.addProduct(newProduct);
+  print('Đã thêm từ JSON: $newProduct');
+  printList(ProductDAO.products);
 
-  print('\n--- 2. READ (TÌM SẢN PHẨM THEO ID) ---');
-  Product? foundProduct = Product.getProductById('3');
-  if (foundProduct != null) {
-    print('Đã tìm thấy: $foundProduct');
-  } else {
-    print('Không tìm thấy sản phẩm!');
+  print('\n--- 2. TEST TĂNG GIÁ 10% ---');
+  ProductDAO.increasePrice();
+  printList(ProductDAO.products);
+
+  print('\n--- 3. TEST EDIT SẢN PHẨM ---');
+  Product? pToEdit = ProductDAO.findById('1');
+  if (pToEdit != null) {
+    Product editedP = pToEdit.copyWith(name: 'Product 1 (Đã Edit VIP)');
+    ProductDAO.editProduct(editedP);
   }
+  printList(ProductDAO.products);
 
-  print('\n--- 3. UPDATE (SỬA SẢN PHẨM ID) ---');
-  // Lấy sản phẩm 1 ra trước
-  Product? productToUpdate = Product.getProductById('1');
-  if (productToUpdate != null) {
-    // Dùng copyWith để tạo bản sao có tên và giá mới
-    Product updatedProduct = productToUpdate.copyWith(
-      name: 'Product 1 (Changed)',
-      price: 999,
-    );
-    Product.updateProduct('1', updatedProduct);
-  }
-  printList(Product.getAllProducts());
+  print('\n--- 4. TEST CÁC HÀM SEARCH KHÁC NHAU ---');
+  print('* Tìm theo tên (chứa từ "Tai"):');
+  printList(ProductDAO.searchByName('Tai'));
 
-  print('\n--- 4. DELETE (XÓA SẢN PHẨM ID) ---');
-  Product.deleteProduct('3');
-  printList(Product.getAllProducts());
+  print('* Tìm theo giá (từ 200 đến 350):');
+  printList(ProductDAO.searchByPriceRange(200, 350));
 }
 
 // Hàm hỗ trợ in danh sách
 void printList(List<Product> list) {
+  if (list.isEmpty) {
+    print('(Danh sách trống)');
+    return;
+  }
   for (var p in list) {
     print(p.toString());
   }
